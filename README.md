@@ -1,0 +1,2 @@
+# typescript_practice
+typescriptの練習内容まとめ
