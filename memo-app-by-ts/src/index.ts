@@ -1,16 +1,19 @@
 import { Memo } from "./types";
 import { STORAGE_KEY, readLocalStorage, saveLocalStorage } from "./storage";
+// ************************************************************
+// 要素一覧
+// ************************************************************
+const memoList = document.getElementById("list") as HTMLDivElement;
+const addButton = document.getElementById("add") as HTMLButtonElement;
 
 // ************************************************************
 // 処理
 // ************************************************************
 let memos: Memo[] = [];
 let memoIndex: number = 0;
-
-// ************************************************************
-// 要素一覧
-// ************************************************************
-const memoList = document.getElementById("list") as HTMLDivElement;
+//※関数宣言なので巻き上げでここで使える
+addButton.addEventListener("click", clickAddMemo);
+init();
 
 // ************************************************************
 // 関数一覧
@@ -43,6 +46,7 @@ function init() {
     saveLocalStorage(STORAGE_KEY, memos);
   }
   showMemoElements(memoList, memos);
+  setActiveStyle(memoIndex + 1, true);
 }
 
 /**
@@ -78,5 +82,33 @@ function showMemoElements(div: HTMLDivElement, memos: Memo[]) {
     div.appendChild(memoElement);
   });
 }
+/**
+ * div要素にアクティブスタイルを設定する
+ * @param {number} index
+ * @param {boolean} isActive true: 追加 false:削除
+ */
+function setActiveStyle(index: number, isActive: boolean) {
+  const selector = `#list > div:nth-child(${index})`;
+  const element = document.querySelector(selector) as HTMLDivElement;
+  if (isActive) {
+    element.classList.add("active");
+  } else {
+    element.classList.remove("active");
+  }
+}
 
-init();
+// ************************************************************
+// イベント関連の関数一覧
+// ************************************************************
+/**
+ * 追加ボタンが押された時の処理
+ * @param {MouseEvent} event
+ */
+function clickAddMemo(event: MouseEvent) {
+  memos.push(newMemo());
+  saveLocalStorage(STORAGE_KEY, memos);
+  // 配列は０から始まるのでー１する
+  memoIndex = memos.length - 1;
+  showMemoElements(memoList, memos);
+  setActiveStyle(memoIndex + 1, true);
+}
