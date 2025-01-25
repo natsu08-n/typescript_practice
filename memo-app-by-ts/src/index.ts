@@ -5,6 +5,8 @@ import { STORAGE_KEY, readLocalStorage, saveLocalStorage } from "./storage";
 // ************************************************************
 const memoList = document.getElementById("list") as HTMLDivElement;
 const addButton = document.getElementById("add") as HTMLButtonElement;
+const memoTitle = document.getElementById("memoTitle") as HTMLInputElement;
+const memoBody = document.getElementById("memoBody") as HTMLTextAreaElement;
 
 // ************************************************************
 // 処理
@@ -32,36 +34,19 @@ function newMemo(): Memo {
     updatedAt: timestamp,
   };
 }
-
 /**
- * 初期化
- */
-function init() {
-  //ローカルストレージからすべてのメモを取得する
-  memos = readLocalStorage(STORAGE_KEY);
-  console.log(memos);
-  if (memos.length === 0) {
-    memos.push(newMemo());
-    //すべてのメモをローカルストレージに保存する
-    saveLocalStorage(STORAGE_KEY, memos);
-  }
-  showMemoElements(memoList, memos);
-  setActiveStyle(memoIndex + 1, true);
-}
-
-/**
- * メモを追加する
+ * メモの要素を作成する
  * @param {Memo} memo メモ
- * @returns {HTMLDivElementHTMLDivElement}
+ * @returns {HTMLDivElement}
  */
 function newMemoElement(memo: Memo): HTMLDivElement {
   const div = document.createElement("div");
   div.innerText = memo.title;
   div.setAttribute("data-id", memo.id);
   div.classList.add("w-full", "p-sm");
+  div.addEventListener("click", selectedMemo);
   return div;
 }
-
 /**
  * メモを削除する
  * @param {HTMLDivElement} div メモ一覧のdiv要素
@@ -69,9 +54,8 @@ function newMemoElement(memo: Memo): HTMLDivElement {
 function clearMemoElements(div: HTMLDivElement) {
   div.innerText = "";
 }
-
 /**
- * すべてのメモ要素を表示する
+ * すべてのメモのタイトルを一覧で表示する
  * @param {HTMLDivElement} div メモ一覧のdiv要素
  * @param {Memo[]} memos メモ
  */
@@ -83,7 +67,7 @@ function showMemoElements(div: HTMLDivElement, memos: Memo[]) {
   });
 }
 /**
- * div要素にアクティブスタイルを設定する
+ * メモ一覧のタイトルにアクティブスタイルを設定する
  * @param {number} index
  * @param {boolean} isActive true: 追加 false:削除
  */
@@ -95,6 +79,29 @@ function setActiveStyle(index: number, isActive: boolean) {
   } else {
     element.classList.remove("active");
   }
+}
+/**
+ * 選択中のメモ情報を表示用のメモ要素に設定する
+ */
+function setMemoElement() {
+  const memo: Memo = memos[memoIndex];
+  memoTitle.value = memo.title;
+  memoBody.value = memo.body;
+}
+/**
+ * 初期化
+ */
+function init() {
+  //ローカルストレージからすべてのメモを取得する
+  memos = readLocalStorage(STORAGE_KEY);
+  if (memos.length === 0) {
+    memos.push(newMemo());
+    //すべてのメモをローカルストレージに保存する
+    saveLocalStorage(STORAGE_KEY, memos);
+  }
+  showMemoElements(memoList, memos);
+  setActiveStyle(memoIndex + 1, true);
+  setMemoElement();
 }
 
 // ************************************************************
@@ -110,5 +117,17 @@ function clickAddMemo(event: MouseEvent) {
   // 配列は０から始まるのでー１する
   memoIndex = memos.length - 1;
   showMemoElements(memoList, memos);
+  setActiveStyle(memoIndex + 1, true);
+  setMemoElement();
+}
+/**
+ * メモが選択された時の処理
+ */
+function selectedMemo(event: MouseEvent) {
+  setActiveStyle(memoIndex + 1, false);
+  const target = event.target as HTMLDivElement;
+  const id = target.getAttribute("data-id");
+  memoIndex = memos.findIndex(memo => memo.id === id);
+  setMemoElement();
   setActiveStyle(memoIndex + 1, true);
 }
