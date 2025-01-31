@@ -7,6 +7,8 @@ const memoList = document.getElementById("list") as HTMLDivElement;
 const addButton = document.getElementById("add") as HTMLButtonElement;
 const memoTitle = document.getElementById("memoTitle") as HTMLInputElement;
 const memoBody = document.getElementById("memoBody") as HTMLTextAreaElement;
+const editButton = document.getElementById("edit") as HTMLButtonElement;
+const saveButton = document.getElementById("save") as HTMLButtonElement;
 
 // ************************************************************
 // 処理
@@ -15,6 +17,8 @@ let memos: Memo[] = [];
 let memoIndex: number = 0;
 //※関数宣言なので巻き上げでここで使える
 addButton.addEventListener("click", clickAddMemo);
+editButton.addEventListener("click", clickEditMemo);
+saveButton.addEventListener("click", clickSaveMemo);
 init();
 
 // ************************************************************
@@ -89,6 +93,32 @@ function setMemoElement() {
   memoBody.value = memo.body;
 }
 /**
+ * button要素の表示・非表示を設定する
+ * @param {HTMLButtonElement} button
+ * @param {boolean} isHidden true
+ */
+function setHiddenButton(button: HTMLButtonElement, isHidden: boolean) {
+  if (isHidden) {
+    button.removeAttribute("hidden");
+  } else {
+    button.setAttribute("hidden", "hidden"); //ここは第二引数trueの気がする
+  }
+}
+/**
+ * タイトルと本文の要素のdisabled属性を設定する
+ * @param editMode true:編集モード false:表示モード
+ */
+function setEditMode(editMode: boolean) {
+  if (editMode) {
+    memoTitle.removeAttribute("disabled");
+    memoBody.removeAttribute("disabled");
+  } else {
+    memoTitle.setAttribute("disabled", "disabled");
+    memoBody.setAttribute("disabled", "disabled");
+  }
+}
+
+/**
  * 初期化
  */
 function init() {
@@ -102,6 +132,8 @@ function init() {
   showMemoElements(memoList, memos);
   setActiveStyle(memoIndex + 1, true);
   setMemoElement();
+  setHiddenButton(saveButton, true);
+  setHiddenButton(editButton, false);
 }
 
 // ************************************************************
@@ -112,6 +144,9 @@ function init() {
  * @param {MouseEvent} event
  */
 function clickAddMemo(event: MouseEvent) {
+  setEditMode(true);
+  setHiddenButton(editButton, false);
+  setHiddenButton(saveButton, true);
   memos.push(newMemo());
   saveLocalStorage(STORAGE_KEY, memos);
   // 配列は０から始まるのでー１する
@@ -124,10 +159,37 @@ function clickAddMemo(event: MouseEvent) {
  * メモが選択された時の処理
  */
 function selectedMemo(event: MouseEvent) {
+  setEditMode(false);
+  setHiddenButton(editButton, true);
+  setHiddenButton(saveButton, false);
   setActiveStyle(memoIndex + 1, false);
   const target = event.target as HTMLDivElement;
   const id = target.getAttribute("data-id");
   memoIndex = memos.findIndex(memo => memo.id === id);
   setMemoElement();
+  setActiveStyle(memoIndex + 1, true);
+}
+/**
+ * 編集ボタンが押された時の処理
+ * @param {MouseEvent} event
+ */
+function clickEditMemo(event: MouseEvent) {
+  setEditMode(true);
+  setHiddenButton(editButton, false);
+  setHiddenButton(saveButton, true);
+}
+/**
+ * 保存ボタンが押された時の処理
+ */
+function clickSaveMemo() {
+  const memo = memos[memoIndex];
+  memo.title = memoTitle.value;
+  memo.body = memoBody.value;
+  memo.updatedAt = Date.now();
+  saveLocalStorage(STORAGE_KEY, memos);
+  setEditMode(false);
+  setHiddenButton(editButton, true);
+  setHiddenButton(saveButton, false);
+  showMemoElements(memoList, memos);
   setActiveStyle(memoIndex + 1, true);
 }
