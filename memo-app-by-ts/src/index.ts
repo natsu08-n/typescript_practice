@@ -9,6 +9,7 @@ const memoTitle = document.getElementById("memoTitle") as HTMLInputElement;
 const memoBody = document.getElementById("memoBody") as HTMLTextAreaElement;
 const editButton = document.getElementById("edit") as HTMLButtonElement;
 const saveButton = document.getElementById("save") as HTMLButtonElement;
+const deleteButton = document.getElementById("delete") as HTMLButtonElement;
 
 // ************************************************************
 // 処理
@@ -19,6 +20,7 @@ let memoIndex: number = 0;
 addButton.addEventListener("click", clickAddMemo);
 editButton.addEventListener("click", clickEditMemo);
 saveButton.addEventListener("click", clickSaveMemo);
+deleteButton.addEventListener("click", clickDeleteMemo);
 init();
 
 // ************************************************************
@@ -187,6 +189,28 @@ function clickSaveMemo() {
   memo.body = memoBody.value;
   memo.updatedAt = Date.now();
   saveLocalStorage(STORAGE_KEY, memos);
+  setEditMode(false);
+  setHiddenButton(editButton, true);
+  setHiddenButton(saveButton, false);
+  showMemoElements(memoList, memos);
+  setActiveStyle(memoIndex + 1, true);
+}
+/**
+ * 削除ボタンが押された時の処理
+ * @param {MouseEvent} event
+ */
+function clickDeleteMemo(event: MouseEvent) {
+  if (memos.length === 1) {
+    alert("最後のメモは削除できません");
+    return;
+  }
+  const memoId = memos[memoIndex].id;
+  memos = memos.filter(memo => memo.id !== memoId);
+  saveLocalStorage(STORAGE_KEY, memos);
+  if (1 <= memoIndex) {
+    memoIndex--;
+  }
+  setMemoElement();
   setEditMode(false);
   setHiddenButton(editButton, true);
   setHiddenButton(saveButton, false);
